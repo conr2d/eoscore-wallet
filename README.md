@@ -10,4 +10,8 @@ A simple wallet for eosio blockchain
 
 * Support mnemonic
 * Support hdkey
+* Support secure enclave
+* Support hsm
 * keosd-clone in JS
+* Remove redundant type conversions
+* Minimize code size
