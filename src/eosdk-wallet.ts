@@ -8,7 +8,6 @@ import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError }
 import { ec } from 'elliptic'
 
 // tslint:disable:no-var-requires
-const bs58check = require('bs58check')
 const walletAbi = require('../src/wallet.abi.json')
 
 const types = Serialize.getTypesFromAbi(Serialize.createInitialTypes(), walletAbi)
@@ -37,9 +36,11 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       }
       const keys = []
       for (const keyPair of deser.keys) {
-        const prefix = Buffer.from('80', 'hex')
-        const priv = Buffer.from(keyPair.value.data, 'hex')
-        keys.push(bs58check.encode(Buffer.concat([prefix, priv])))
+        const priv = {
+          type: PublicKey.fromString(keyPair.key).getType(),
+          data: Buffer.from(keyPair.value.data, 'hex')
+        }
+        keys.push(new PrivateKey(priv, defaultEc).toString())
       }
       this.jssig = new JsSignatureProvider(keys)
     } catch (error) {
