@@ -44,14 +44,14 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       }
       this.jssig = new JsSignatureProvider(keys)
     } catch (error) {
-      delete this.checksum
+      this.checksum = null
       throw new WalletInvalidDataError()
     }
   }
 
   public lock() {
-    delete this.checksum
-    delete this.jssig
+    this.checksum = null
+    this.jssig = null
   }
 
   public async getAvailableKeys(): Promise<string[]> {
