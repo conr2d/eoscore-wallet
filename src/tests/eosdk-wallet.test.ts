@@ -28,4 +28,13 @@ describe('eosdk-wallet', () => {
 
     expect(compareKeys).toEqual(true)
   })
+
+  it('serialize encrypts wallet data', async () => {
+    await wallet.unlock(password)
+    const serializedWalletData = await wallet.serialize()
+    const cipherKeys = JSON.parse(walletData).cipher_keys
+    const serializedCipherKeys = JSON.parse(serializedWalletData).cipher_keys
+
+    expect(cipherKeys === serializedCipherKeys).toEqual(true)
+  })
 })

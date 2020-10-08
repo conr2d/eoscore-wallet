@@ -2,10 +2,10 @@ import { ApiInterfaces, RpcInterfaces, Serialize } from 'eosjs'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
 import { PublicKey, PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
 import hash from 'hash.js'
-import aes from 'aes-js'
 import { WalletData } from './eosdk-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eosdk-wallet-errors'
 import { ec } from 'elliptic'
+import { AES } from './crypto'
 
 // tslint:disable:no-var-requires
 const walletAbi = require('../src/wallet.abi.json')
@@ -24,10 +24,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   public async unlock(password: string): Promise<void> {
     try {
       this.checksum = Buffer.from(hash.sha512().update(password).digest())
-      const key = this.checksum.slice(0, 32)
-      const iv = this.checksum.slice(32, 48)
-      const cbc = new aes.ModeOfOperation.cbc(key, iv)
-      const decrypted = aes.padding.pkcs7.strip(cbc.decrypt(Buffer.from(this.walletData.cipher_keys, 'hex')))
+      const decrypted = AES.decrypt(this.checksum, Buffer.from(this.walletData.cipher_keys, 'hex'));
       const buffer = new Serialize.SerialBuffer({ array: decrypted })
       const wallet = types.get('wallet')
       const deser = wallet?.deserialize(buffer)
@@ -81,10 +78,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       buffer.pushPrivateKey(PrivateKey.fromElliptic(priv, publicKey.getType(), defaultEc).toString())
     })
     const size = buffer.length
-    const key = this.checksum.slice(0, 32)
-    const iv = this.checksum.slice(32, 48)
-    const cbc = new aes.ModeOfOperation.cbc(key, iv)
-    const encrypted = Buffer.from(cbc.encrypt(aes.padding.pkcs7.pad(buffer.asUint8Array()))).slice(0, size+16)
+    const encrypted = AES.encrypt(this.checksum, buffer.asUint8Array()).slice(0, size+16);
     return JSON.stringify({
       cipher_keys: encrypted.toString('hex')
     })
