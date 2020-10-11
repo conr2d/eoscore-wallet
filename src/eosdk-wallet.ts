@@ -1,4 +1,4 @@
-import { ApiInterfaces, RpcInterfaces, Serialize } from 'eosjs'
+import { ApiInterfaces, RpcInterfaces, Numeric, Serialize } from 'eosjs'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
 import { PublicKey, PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
 import hash from 'hash.js'
@@ -6,6 +6,7 @@ import { WalletData } from './eosdk-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eosdk-wallet-errors'
 import { ec } from 'elliptic'
 import { AES } from './crypto'
+import crypto from 'crypto'
 
 // tslint:disable:no-var-requires
 const walletAbi = require('../src/wallet.abi.json')
@@ -18,6 +19,20 @@ const defaultEc = new ec('secp256k1') as any;
 class Wallet implements ApiInterfaces.SignatureProvider {
   private jssig: any
   private checksum: any
+
+  public static async create(password: string): Promise<Wallet> {
+    const checksum = Buffer.from(hash.sha512().update(password).digest())
+    const buffer = new Serialize.SerialBuffer()
+    buffer.pushUint8ArrayChecked(checksum, 64)
+    buffer.pushVaruint32(0)
+    const size = buffer.length
+    const encrypted = AES.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16);
+    const wallet = new Wallet({
+      cipher_keys: encrypted.toString('hex')
+    })
+    await wallet.unlock(password)
+    return wallet
+  }
 
   constructor(private walletData: WalletData) {}
 
@@ -83,6 +98,32 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       cipher_keys: encrypted.toString('hex')
     })
   }
+
+  public importKey(privateKey: string): string {
+    if (!this.jssig) {
+      throw new WalletLockedError()
+    }
+    const priv = PrivateKey.fromString(privateKey)
+    const privElliptic = priv.toElliptic()
+    const pubStr = priv.getPublicKey().toString()
+    if (!this.jssig.keys.has(pubStr)) {
+      this.jssig.keys.set(pubStr, privElliptic)
+      this.jssig.availableKeys.push(pubStr)
+    }
+    return pubStr
+  }
+
+  public async createKey(): Promise<string> {
+    if (!this.jssig) {
+      throw new WalletLockedError()
+    }
+    const rawKey: Numeric.Key = {
+      type: Numeric.KeyType.k1,
+      data: crypto.randomBytes(32)
+    }
+    const privateKey = new PrivateKey(rawKey, defaultEc)
+    return this.importKey(privateKey.toString())
+  }
 }
 
-export { Wallet }
+export { Wallet, defaultEc }
