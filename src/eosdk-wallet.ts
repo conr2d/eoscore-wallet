@@ -8,7 +8,7 @@ import { ec } from 'elliptic'
 import { AES } from './crypto'
 import crypto from 'crypto'
 
-// tslint:disable:no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const walletAbi = require('../src/wallet.abi.json')
 
 const types = Serialize.getTypesFromAbi(Serialize.createInitialTypes(), walletAbi)

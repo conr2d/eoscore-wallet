@@ -1,4 +1,4 @@
-// tslint:disable:max-classes-per-file
+/* eslint-disable max-classes-per-file */
 export class WalletInvalidDataError extends Error {
   constructor() {
     super('wallet data is invalid')
