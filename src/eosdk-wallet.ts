@@ -87,7 +87,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       return JSON.stringify(this.encrypted)
     }
     const buffer = new Serialize.SerialBuffer()
-    buffer.pushUint8ArrayChecked(this.checksum, 64)
+    buffer.pushUint8ArrayChecked(this.checksum as Buffer, 64)
     buffer.pushVaruint32(this.jssig.keys.size)
     this.jssig.keys.forEach((priv: ec.KeyPair, pub: string) => {
       buffer.pushPublicKey(pub)
@@ -95,7 +95,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       buffer.pushPrivateKey(PrivateKey.fromElliptic(priv, publicKey.getType(), defaultEc).toString())
     })
     const size = buffer.length
-    const cipherKeys = AES.encrypt(this.checksum, buffer.asUint8Array()).slice(0, size+16);
+    const cipherKeys = AES.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
     return JSON.stringify({
       cipher_keys: cipherKeys.toString('hex')
     })

@@ -15,8 +15,8 @@ describe('eosdk-wallet-manager', () => {
     walletManager = new WalletManager()
   })
 
-  it('createWallet creates wallet', () => {
-    walletManager.createWallet('default', password)
+  it('createWallet creates wallet', async () => {
+    await walletManager.createWallet('default', password)
     const wallet = walletManager.getWallet() as Wallet
     const serializedWallet = wallet.serialize()
     const cipherKeys = (JSON.parse(encryptedWallet) as EncryptedWallet).cipher_keys
