@@ -64,6 +64,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   }
 
   public lock(): void {
+    this.serialize()
     this.checksum = undefined
     this.jssig = undefined
   }
@@ -96,9 +97,10 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     })
     const size = buffer.length
     const cipherKeys = AES.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
-    return JSON.stringify({
+    this.encrypted = {
       cipher_keys: cipherKeys.toString('hex')
-    })
+    }
+    return JSON.stringify(this.encrypted)
   }
 
   public importKey(privateKey: string): string {
