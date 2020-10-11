@@ -1,5 +1,23 @@
-export interface WalletData {
+import { Numeric } from 'eosjs'
+
+/* eslint-disable @typescript-eslint/naming-convention */
+export interface EncryptedWallet {
   cipher_keys: string
+}
+
+interface KeyPair {
+  key: string
+  value: Key
+}
+
+interface Key {
+  type: Numeric.KeyType
+  data: string
+}
+
+export interface DecryptedWallet {
+  checksum: string
+  keys: KeyPair[]
 }
 
 export interface KvStoreBackend {

@@ -5,7 +5,7 @@ import { Wallet, defaultEc } from './eosdk-wallet'
 import { KvStore } from './kvstore'
 import { WalletNotFoundError, WalletExistsError } from './eosdk-wallet-errors'
 
-const passwordPrefix: string = 'PW'
+const passwordPrefix = 'PW'
 
 class WalletManager {
   private wallets: Map<string, Wallet> = new Map<string, Wallet>()
@@ -21,24 +21,24 @@ class WalletManager {
 
   constructor(private kvstore: KvStore = new KvStore()) {}
 
-  public async createWallet(walletName: string = 'default', password?: string): Promise<string> {
+  public createWallet(walletName = 'default', password?: string): string {
     if (this.wallets.has(walletName)) {
       throw new WalletExistsError()
     }
     if (!password) {
       password = WalletManager.generatePassword()
     }
-    const wallet = await Wallet.create(<string>password)
+    const wallet = Wallet.create(password)
     this.wallets.set(walletName, wallet)
     return password
   }
 
-  public async createKey(walletName: string): Promise<string>  {
+  public createKey(walletName: string): string  {
     if (!this.wallets.has(walletName)) {
       throw new WalletNotFoundError()
     }
-    const wallet = this.wallets.get(walletName)
-    const publicKey = await (<Wallet>wallet).createKey()
+    const wallet = this.wallets.get(walletName) as Wallet
+    const publicKey = wallet.createKey()
     return publicKey
   }
 
@@ -46,8 +46,8 @@ class WalletManager {
     if (!this.wallets.has(walletName)) {
       throw new WalletNotFoundError()
     }
-    const wallet = this.wallets.get(walletName)
-    const walletDataStr = await (<Wallet>wallet).serialize()
+    const wallet = this.wallets.get(walletName) as Wallet
+    const walletDataStr = wallet.serialize()
     await this.kvstore.set(walletName, walletDataStr)
   }
 
@@ -65,7 +65,7 @@ class WalletManager {
   }
 
   // For test, this will be removed in the future version
-  public getWallet(walletName: string = 'default'): Wallet | undefined {
+  public getWallet(walletName = 'default'): Wallet | undefined {
     return this.wallets.get(walletName)
   }
 }
