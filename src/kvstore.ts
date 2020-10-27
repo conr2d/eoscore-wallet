@@ -1,7 +1,8 @@
+import { KvStoreBackend } from './eosdk-wallet-interfaces'
 import { KvStoreRocksDBBackend } from './kvstore-rocksdb-backend'
 
 class KvStore {
-  constructor(private backend: KvStoreRocksDBBackend = new KvStoreRocksDBBackend()) {}
+  constructor(private backend: KvStoreBackend = new KvStoreRocksDBBackend()) {}
 
   async set(key: string, value: string): Promise<void> {
     await this.backend.set(key, value)

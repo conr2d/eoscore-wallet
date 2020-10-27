@@ -21,7 +21,7 @@ export interface DecryptedWallet {
 }
 
 export interface KvStoreBackend {
-  set: (key: string, value: string) => void
+  set: (key: string, value: string) => Promise<void>
   get: (key: string) => Promise<string>
-  del: (key: string) => void
+  del: (key: string) => Promise<void>
 }
