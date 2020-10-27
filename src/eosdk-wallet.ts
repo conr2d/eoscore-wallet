@@ -100,7 +100,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     this.encrypted = {
       cipher_keys: cipherKeys.toString('hex')
     }
-    return JSON.stringify(this.encrypted)
+    return JSON.stringify(this.encrypted, undefined, 2)
   }
 
   public importKey(privateKey: string): string {
@@ -113,6 +113,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     if (!this.jssig.keys.has(pubStr)) {
       this.jssig.keys.set(pubStr, privElliptic)
       this.jssig.availableKeys.push(pubStr)
+      this.serialize()
     }
     return pubStr
   }
