@@ -134,6 +134,13 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   public async save(): Promise<void> {
     await this.kvstore.set(this.name, this.serialize())
   }
+
+  public getPublicKeys(): string[] {
+    if (!this.jssig) {
+      throw new WalletLockedError()
+    }
+    return Array.from(this.jssig.keys.keys())
+  }
 }
 
 export { Wallet, defaultEc }
