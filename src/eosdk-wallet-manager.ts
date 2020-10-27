@@ -16,7 +16,7 @@ class WalletManager {
       data: crypto.randomBytes(32)
     }
     const privateKey = new PrivateKey(rawKey, defaultEc)
-    return passwordPrefix + privateKey.toString()
+    return passwordPrefix + privateKey.toLegacyString()
   }
 
   constructor(private kvstore: KvStore = new KvStore()) {}
