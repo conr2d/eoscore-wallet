@@ -12,8 +12,8 @@ class KvStoreRocksDBBackend implements KvStoreBackend {
   private db
   private dbpath: string
 
-  constructor() {
-    this.dbpath = path.join(os.homedir(), 'eosdk-wallet')
+  constructor(dbpath?: string) {
+    this.dbpath = dbpath ? dbpath : path.join(os.homedir(), 'eosdk-wallet')
     this.db = level(this.dbpath)
   }
 
