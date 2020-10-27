@@ -7,6 +7,7 @@ import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError }
 import { ec } from 'elliptic'
 import { AES } from './crypto'
 import crypto from 'crypto'
+import { KvStore } from './kvstore'
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -21,22 +22,22 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   private jssig?: JsSignatureProvider
   private checksum?: Buffer
 
-  public static create(password: string): Wallet {
+  public static create(name: string, password: string, kvstore: KvStore = new KvStore()): Wallet {
     const checksum = Buffer.from(hash.sha512().update(password).digest())
     const buffer = new Serialize.SerialBuffer()
     buffer.pushUint8ArrayChecked(checksum, 64)
     buffer.pushVaruint32(0)
     const size = buffer.length
     const cipherKeys = AES.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16);
-    const wallet = new Wallet({
+    const wallet = new Wallet(name, {
 /* eslint-disable @typescript-eslint/naming-convention */
       cipher_keys: cipherKeys.toString('hex')
-    })
+    }, kvstore)
     wallet.unlock(password)
     return wallet
   }
 
-  constructor(private encrypted: EncryptedWallet) {}
+  constructor(private name: string, private encrypted: EncryptedWallet, private kvstore: KvStore = new KvStore()) {}
 
   public unlock(password: string): void {
     try {
@@ -128,6 +129,10 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     }
     const privateKey = new PrivateKey(rawKey, defaultEc)
     return this.importKey(privateKey.toString())
+  }
+
+  public async save(): Promise<void> {
+    await this.kvstore.set(this.name, this.serialize())
   }
 }
 

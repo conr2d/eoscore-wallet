@@ -11,7 +11,7 @@ describe('eosdk-wallet', () => {
   let wallet: Wallet
 
   beforeEach(() => {
-    wallet = new Wallet(JSON.parse(encryptedWallet))
+    wallet = new Wallet('default', JSON.parse(encryptedWallet))
   })
 
   it('unlock decrypts cipher_keys in wallet data', async () => {

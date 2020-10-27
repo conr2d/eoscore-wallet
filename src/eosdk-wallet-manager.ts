@@ -21,7 +21,7 @@ class WalletManager {
 
   constructor(private kvstore: KvStore = new KvStore()) {}
 
-  public async createWallet(walletName = 'default', password?: string): Promise<string> {
+  public async createWallet(walletName: string, password?: string): Promise<string> {
     if (this.wallets.has(walletName)) {
       throw new WalletExistsError()
     }
@@ -31,7 +31,7 @@ class WalletManager {
       if (!password) {
         password = WalletManager.generatePassword()
       }
-      const wallet = Wallet.create(password)
+      const wallet = Wallet.create(walletName, password, this.kvstore)
       this.wallets.set(walletName, wallet)
       return password
     }
@@ -52,14 +52,13 @@ class WalletManager {
       throw new WalletNotFoundError()
     }
     const wallet = this.wallets.get(walletName) as Wallet
-    const encryptedWallet = wallet.serialize()
-    await this.kvstore.set(walletName, encryptedWallet)
+    await wallet.save()
   }
 
   public async loadWallet(walletName: string): Promise<void> {
     try {
       const encryptedWallet = await this.kvstore.get(walletName)
-      const wallet = new Wallet(JSON.parse(encryptedWallet))
+      const wallet = new Wallet(walletName, JSON.parse(encryptedWallet), this.kvstore)
       if (this.wallets.has(walletName)) {
         this.wallets.delete(walletName)
       }
