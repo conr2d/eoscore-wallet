@@ -69,7 +69,7 @@ class WalletManager {
   }
 
   // For test, this will be removed in the future version
-  public getWallet(walletName = 'default'): Wallet | undefined {
+  public getWallet(walletName: string): Wallet | undefined {
     return this.wallets.get(walletName)
   }
 }
