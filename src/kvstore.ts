@@ -1,14 +1,14 @@
 import { KvStoreBackend } from './eoscore-wallet-interfaces'
-import { KvStoreRocksDBBackend } from './kvstore-rocksdb-backend'
+import { KvStoreInMemoryBackend } from './kvstore-inmemory-backend'
 
 class KvStore {
-  constructor(private backend: KvStoreBackend = new KvStoreRocksDBBackend()) {}
+  constructor(private backend: KvStoreBackend = new KvStoreInMemoryBackend()) {}
 
   async set(key: string, value: string): Promise<void> {
     await this.backend.set(key, value)
   }
 
-  async get(key: string): Promise<string> {
+  async get(key: string): Promise<string | undefined> {
     return await this.backend.get(key)
   }
 

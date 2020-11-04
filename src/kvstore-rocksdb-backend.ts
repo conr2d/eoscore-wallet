@@ -21,8 +21,8 @@ class KvStoreRocksDBBackend implements KvStoreBackend {
     await this.db.put(key, value)
   }
 
-  async get(key: string): Promise<string> {
-    return (await this.db.get(key)) as string
+  async get(key: string): Promise<string | undefined> {
+    return await this.db.get(key)
   }
 
   async del(key: string): Promise<void> {

@@ -23,7 +23,7 @@ class KvStoreFileSystemBackend implements KvStoreBackend {
     await fs.writeFile(path.join(this.dbpath, key + this.extension), value)
   }
 
-  async get(key: string): Promise<string> {
+  async get(key: string): Promise<string | undefined> {
     return await fs.readFile(path.join(this.dbpath, key + this.extension), 'utf8')
   }
 

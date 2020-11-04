@@ -56,16 +56,15 @@ class WalletManager {
   }
 
   public async loadWallet(walletName: string): Promise<void> {
-    try {
-      const encryptedWallet = await this.kvstore.get(walletName)
-      const wallet = new Wallet(walletName, JSON.parse(encryptedWallet), this.kvstore)
-      if (this.wallets.has(walletName)) {
-        this.wallets.delete(walletName)
-      }
-      this.wallets.set(walletName, wallet)
-    } catch (e) {
+    const encryptedWallet = await this.kvstore.get(walletName)
+    if (!encryptedWallet) {
       throw new WalletNotFoundError()
     }
+    const wallet = new Wallet(walletName, JSON.parse(encryptedWallet), this.kvstore)
+    if (this.wallets.has(walletName)) {
+      this.wallets.delete(walletName)
+    }
+    this.wallets.set(walletName, wallet)
   }
 
   // For test, this will be removed in the future version
