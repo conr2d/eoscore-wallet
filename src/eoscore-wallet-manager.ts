@@ -1,8 +1,9 @@
 import crypto from 'crypto'
-import { Numeric } from 'eosjs'
+import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { Wallet } from './eoscore-wallet'
 import { KvStore } from './kvstore'
 import { WalletNotFoundError, WalletExistsError } from './eoscore-wallet-errors'
+import { digestFromSerializedData } from './eoscore-wallet-utils'
 
 const passwordPrefix = 'PW'
 
@@ -66,6 +67,37 @@ class WalletManager {
       this.wallets.delete(walletName)
     }
     this.wallets.set(walletName, wallet)
+  }
+
+  public async getAvailableKeys(): Promise<string[]> {
+    const keys = [] as string[]
+    for (const wallet of this.wallets) {
+      if (!wallet[1].isLocked()) {
+        keys.push(...(await wallet[1].getAvailableKeys()))
+      }
+    }
+    return keys
+  }
+
+  public async sign(args: ApiInterfaces.SignatureProviderArgs): Promise<RpcInterfaces.PushTransactionArgs> {
+    const { chainId, serializedTransaction, serializedContextFreeData, requiredKeys } = args
+    const digest = digestFromSerializedData(chainId, serializedTransaction, serializedContextFreeData)
+    const signatures = [] as string[]
+    for (const key of requiredKeys) {
+      let found = false
+      for (const wallet of this.wallets) {
+        const signature = await wallet[1].trySignDigest(digest, key)
+        if (signature) {
+          signatures.push(signature)
+          found = true
+          break;
+        }
+      }
+      if (!found) {
+        throw new Error('required key is not found')
+      }
+    }
+    return { signatures, serializedTransaction, serializedContextFreeData }
   }
 
   // For test, this will be removed in the future version

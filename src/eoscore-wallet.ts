@@ -1,4 +1,4 @@
-import { ApiInterfaces, RpcInterfaces, Numeric, Serialize } from 'eosjs'
+import { Numeric, Serialize } from 'eosjs'
 import { NativeSignatureProvider } from './native-signature-provider'
 import { EncryptedWallet, DecryptedWallet } from './eoscore-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eoscore-wallet-errors'
@@ -13,7 +13,7 @@ const walletAbi = require('../src/wallet.abi.json')
 
 const types = Serialize.getTypesFromAbi(Serialize.createInitialTypes(), walletAbi)
 
-class Wallet implements ApiInterfaces.SignatureProvider {
+class Wallet {
   private sig?: NativeSignatureProvider
   private checksum?: Buffer
 
@@ -33,6 +33,10 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   }
 
   constructor(private name: string, private encrypted: EncryptedWallet, private kvstore: KvStore = new KvStore()) {}
+
+  public isLocked(): boolean {
+    return !this.sig
+  }
 
   public unlock(password: string): void {
     try {
@@ -72,11 +76,11 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     return this.sig.getAvailableKeys()
   }
 
-  public sign(args: ApiInterfaces.SignatureProviderArgs): Promise<RpcInterfaces.PushTransactionArgs> {
+  public trySignDigest(digest: Buffer, key: string): Promise<string | undefined> {
     if (!this.sig) {
       throw new WalletLockedError()
     }
-    return this.sig.sign(args)
+    return this.sig.trySignDigest(digest, key)
   }
 
   public serialize(): string {
