@@ -1,11 +1,10 @@
 import { ApiInterfaces, RpcInterfaces, Numeric, Serialize } from 'eosjs'
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
 import { PublicKey, PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
-import hash from 'hash.js'
 import { EncryptedWallet, DecryptedWallet } from './eoscore-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eoscore-wallet-errors'
 import { ec } from 'elliptic'
-import { AES } from './crypto'
+import { aes, hash } from './crypto'
 import crypto from 'crypto'
 import { KvStore } from './kvstore'
 
@@ -28,7 +27,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     buffer.pushUint8ArrayChecked(checksum, 64)
     buffer.pushVaruint32(0)
     const size = buffer.length
-    const cipherKeys = AES.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16);
+    const cipherKeys = aes.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16);
     const wallet = new Wallet(name, {
 /* eslint-disable @typescript-eslint/naming-convention */
       cipher_keys: cipherKeys.toString('hex')
@@ -42,7 +41,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   public unlock(password: string): void {
     try {
       this.checksum = Buffer.from(hash.sha512().update(password).digest())
-      const decrypted = AES.decrypt(this.checksum, Buffer.from(this.encrypted.cipher_keys, 'hex'));
+      const decrypted = aes.decrypt(this.checksum, Buffer.from(this.encrypted.cipher_keys, 'hex'));
       const buffer = new Serialize.SerialBuffer({ array: decrypted })
       const wallet = types.get('wallet')
       const deser = wallet?.deserialize(buffer) as DecryptedWallet
@@ -97,7 +96,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       buffer.pushPrivateKey(PrivateKey.fromElliptic(priv, publicKey.getType(), defaultEc).toString())
     })
     const size = buffer.length
-    const cipherKeys = AES.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
+    const cipherKeys = aes.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
     this.encrypted = {
       cipher_keys: cipherKeys.toString('hex')
     }
