@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { Wallet } from './eoscore-wallet'
 import { KvStore } from './kvstore'
-import { WalletNotFoundError, WalletExistsError } from './eoscore-wallet-errors'
+import { WalletNotFoundError, WalletExistsError, KeyNotFoundError } from './eoscore-wallet-errors'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
 
 const passwordPrefix = 'PW'
@@ -94,7 +94,7 @@ class WalletManager {
         }
       }
       if (!found) {
-        throw new Error('required key is not found')
+        throw new KeyNotFoundError()
       }
     }
     return { signatures, serializedTransaction, serializedContextFreeData }

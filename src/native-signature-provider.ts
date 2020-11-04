@@ -1,6 +1,7 @@
 import secp256k1 from 'secp256k1'
 import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
+import { UnsupportedKeyTypeError }  from './eoscore-wallet-errors'
 
 class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
   public keys = new Map<string, Buffer>()
@@ -10,7 +11,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     for (const k of privateKeys) {
       const priv = Numeric.stringToPrivateKey(k)
       if (priv.type !== Numeric.KeyType.k1) {
-        throw new Error('not supported key type')
+        throw new UnsupportedKeyTypeError()
       }
       const pubStr = Numeric.publicKeyToString({ type: priv.type, data: secp256k1.publicKeyCreate(priv.data) })
       this.keys.set(pubStr, Buffer.from(priv.data))

@@ -33,3 +33,17 @@ export class WalletExistsError extends Error {
     Object.setPrototypeOf(this, WalletExistsError.prototype)
   }
 }
+
+export class KeyNotFoundError extends Error {
+  constructor() {
+    super('key is not found')
+    Object.setPrototypeOf(this, KeyNotFoundError.prototype)
+  }
+}
+
+export class UnsupportedKeyTypeError extends Error {
+  constructor() {
+    super('key type is not supported')
+    Object.setPrototypeOf(this, UnsupportedKeyTypeError.prototype)
+  }
+}
