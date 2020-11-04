@@ -25,17 +25,15 @@ class WalletManager {
     if (this.wallets.has(walletName)) {
       throw new WalletExistsError()
     }
-    try {
-      await this.kvstore.get(walletName)
-    } catch (e) {
-      if (!password) {
-        password = WalletManager.generatePassword()
-      }
-      const wallet = Wallet.create(walletName, password, this.kvstore)
-      this.wallets.set(walletName, wallet)
-      return password
+    if (await this.kvstore.get(walletName)) {
+      throw new WalletExistsError()
     }
-    throw new WalletExistsError()
+    if (!password) {
+      password = WalletManager.generatePassword()
+    }
+    const wallet = Wallet.create(walletName, password, this.kvstore)
+    this.wallets.set(walletName, wallet)
+    return password
   }
 
   public createKey(walletName: string): string  {
