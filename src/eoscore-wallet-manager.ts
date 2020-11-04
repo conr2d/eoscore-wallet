@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 import { Numeric } from 'eosjs'
-import { PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
-import { Wallet, defaultEc } from './eoscore-wallet'
+import { Wallet } from './eoscore-wallet'
 import { KvStore } from './kvstore'
 import { WalletNotFoundError, WalletExistsError } from './eoscore-wallet-errors'
 
@@ -11,12 +10,7 @@ class WalletManager {
   private wallets: Map<string, Wallet> = new Map<string, Wallet>()
 
   public static generatePassword(): string {
-    const rawKey: Numeric.Key = {
-      type: Numeric.KeyType.k1,
-      data: crypto.randomBytes(32)
-    }
-    const privateKey = new PrivateKey(rawKey, defaultEc)
-    return passwordPrefix + privateKey.toLegacyString()
+    return passwordPrefix + Numeric.privateKeyToLegacyString({ type: Numeric.KeyType.k1, data: crypto.randomBytes(32) })
   }
 
   constructor(private kvstore: KvStore = new KvStore()) {}

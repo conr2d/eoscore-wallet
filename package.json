@@ -20,9 +20,11 @@
     "url": "https://github.com/conr2d/eoscore-wallet.git"
   },
   "dependencies": {
+    "@types/secp256k1": "^4.0.1",
     "elliptic": "^6.5.3",
     "eosjs": "^21.0.3",
-    "level-rocksdb": "^4.0.0"
+    "level-rocksdb": "^4.0.0",
+    "secp256k1": "^4.0.2"
   },
   "devDependencies": {
     "@types/aes-js": "^3.1.1",

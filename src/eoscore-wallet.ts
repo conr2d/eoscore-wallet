@@ -1,12 +1,11 @@
 import { ApiInterfaces, RpcInterfaces, Numeric, Serialize } from 'eosjs'
-import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig'
-import { PublicKey, PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
+import { NativeSignatureProvider } from './native-signature-provider'
 import { EncryptedWallet, DecryptedWallet } from './eoscore-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eoscore-wallet-errors'
-import { ec } from 'elliptic'
 import { aes, hash } from './crypto'
 import crypto from 'crypto'
 import { KvStore } from './kvstore'
+import secp256k1 from 'secp256k1'
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -14,11 +13,8 @@ const walletAbi = require('../src/wallet.abi.json')
 
 const types = Serialize.getTypesFromAbi(Serialize.createInitialTypes(), walletAbi)
 
-/** expensive to construct; so we do it once and reuse it */
-const defaultEc = new ec('secp256k1') as any;
-
 class Wallet implements ApiInterfaces.SignatureProvider {
-  private jssig?: JsSignatureProvider
+  private sig?: NativeSignatureProvider
   private checksum?: Buffer
 
   public static create(name: string, password: string, kvstore: KvStore = new KvStore()): Wallet {
@@ -51,12 +47,12 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       const keys = []
       for (const keyPair of deser.keys) {
         const priv = {
-          type: PublicKey.fromString(keyPair.key).getType(),
+          type: Numeric.stringToPublicKey(keyPair.key).type,
           data: Buffer.from(keyPair.value.data, 'hex')
         }
-        keys.push(new PrivateKey(priv, defaultEc).toString())
+        keys.push(Numeric.privateKeyToString(priv))
       }
-      this.jssig = new JsSignatureProvider(keys)
+      this.sig = new NativeSignatureProvider(keys)
     } catch (error) {
       this.checksum = undefined
       throw new WalletInvalidDataError()
@@ -66,34 +62,34 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   public lock(): void {
     this.serialize()
     this.checksum = undefined
-    this.jssig = undefined
+    this.sig = undefined
   }
 
   public getAvailableKeys(): Promise<string[]> {
-    if (!this.jssig) {
+    if (!this.sig) {
       throw new WalletLockedError()
     }
-    return this.jssig.getAvailableKeys()
+    return this.sig.getAvailableKeys()
   }
 
   public sign(args: ApiInterfaces.SignatureProviderArgs): Promise<RpcInterfaces.PushTransactionArgs> {
-    if (!this.jssig) {
+    if (!this.sig) {
       throw new WalletLockedError()
     }
-    return this.jssig.sign(args)
+    return this.sig.sign(args)
   }
 
   public serialize(): string {
-    if (!this.jssig) {
+    if (!this.sig) {
       return JSON.stringify(this.encrypted)
     }
     const buffer = new Serialize.SerialBuffer()
     buffer.pushUint8ArrayChecked(this.checksum as Buffer, 64)
-    buffer.pushVaruint32(this.jssig.keys.size)
-    this.jssig.keys.forEach((priv: ec.KeyPair, pub: string) => {
+    buffer.pushVaruint32(this.sig.keys.size)
+    this.sig.keys.forEach((priv: Buffer, pub: string) => {
       buffer.pushPublicKey(pub)
-      const publicKey = PublicKey.fromString(pub)
-      buffer.pushPrivateKey(PrivateKey.fromElliptic(priv, publicKey.getType(), defaultEc).toString())
+      const publicKey = Numeric.stringToPublicKey(pub)
+      buffer.pushPrivateKey(Numeric.privateKeyToString({ type: publicKey.type, data: priv }))
     })
     const size = buffer.length
     const cipherKeys = aes.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
@@ -104,30 +100,24 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   }
 
   public importKey(privateKey: string): string {
-    if (!this.jssig) {
+    if (!this.sig) {
       throw new WalletLockedError()
     }
-    const priv = PrivateKey.fromString(privateKey)
-    const privElliptic = priv.toElliptic()
-    const pubStr = priv.getPublicKey().toString()
-    if (!this.jssig.keys.has(pubStr)) {
-      this.jssig.keys.set(pubStr, privElliptic)
-      this.jssig.availableKeys.push(pubStr)
+    const priv = Numeric.stringToPrivateKey(privateKey)
+    const pubStr = Numeric.publicKeyToString({ type: priv.type, data: Buffer.from(secp256k1.publicKeyCreate(priv.data)) })
+    if (!this.sig.keys.has(pubStr)) {
+      this.sig.keys.set(pubStr, Buffer.from(priv.data))
+      this.sig.availableKeys.push(pubStr)
       this.serialize()
     }
     return pubStr
   }
 
   public createKey(): string {
-    if (!this.jssig) {
+    if (!this.sig) {
       throw new WalletLockedError()
     }
-    const rawKey: Numeric.Key = {
-      type: Numeric.KeyType.k1,
-      data: crypto.randomBytes(32)
-    }
-    const privateKey = new PrivateKey(rawKey, defaultEc)
-    return this.importKey(privateKey.toString())
+    return this.importKey(Numeric.privateKeyToString({ type: Numeric.KeyType.k1, data: crypto.randomBytes(32) }))
   }
 
   public async save(): Promise<void> {
@@ -135,11 +125,11 @@ class Wallet implements ApiInterfaces.SignatureProvider {
   }
 
   public getPublicKeys(): string[] {
-    if (!this.jssig) {
+    if (!this.sig) {
       throw new WalletLockedError()
     }
-    return Array.from(this.jssig.keys.keys())
+    return Array.from(this.sig.keys.keys())
   }
 }
 
-export { Wallet, defaultEc }
+export { Wallet }
