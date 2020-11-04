@@ -39,19 +39,28 @@ class WalletManager {
   }
 
   public createKey(walletName: string): string  {
-    if (!this.wallets.has(walletName)) {
+    const wallet = this.wallets.get(walletName)
+    if (!wallet) {
       throw new WalletNotFoundError()
     }
-    const wallet = this.wallets.get(walletName) as Wallet
     const publicKey = wallet.createKey()
     return publicKey
   }
 
-  public async saveWallet(walletName: string): Promise<void> {
-    if (!this.wallets.has(walletName)) {
+  public importKey(walletName: string, privateKey: string): string {
+    const wallet = this.wallets.get(walletName)
+    if (!wallet) {
       throw new WalletNotFoundError()
     }
-    const wallet = this.wallets.get(walletName) as Wallet
+    const publicKey = wallet.importKey(privateKey)
+    return publicKey
+  }
+
+  public async saveWallet(walletName: string): Promise<void> {
+    const wallet = this.wallets.get(walletName)
+    if (!wallet) {
+      throw new WalletNotFoundError()
+    }
     await wallet.save()
   }
 
