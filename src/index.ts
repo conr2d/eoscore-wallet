@@ -1,7 +1,7 @@
-import { Wallet } from './eosdk-wallet'
-import { WalletManager } from './eosdk-wallet-manager'
-import * as WalletInterfaces from './eosdk-wallet-interfaces'
-import * as WalletErrors from './eosdk-wallet-errors'
+import { Wallet } from './eoscore-wallet'
+import { WalletManager } from './eoscore-wallet-manager'
+import * as WalletInterfaces from './eoscore-wallet-interfaces'
+import * as WalletErrors from './eoscore-wallet-errors'
 
 import { KvStore } from './kvstore'
 import { KvStoreFileSystemBackend } from './kvstore-fs-backend'

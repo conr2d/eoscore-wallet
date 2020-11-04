@@ -1,4 +1,4 @@
-# eosdk-wallet [alpha]
+# EOSCore Wallet [alpha]
 
 A simple wallet for eosio blockchain
 

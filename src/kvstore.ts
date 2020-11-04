@@ -1,4 +1,4 @@
-import { KvStoreBackend } from './eosdk-wallet-interfaces'
+import { KvStoreBackend } from './eoscore-wallet-interfaces'
 import { KvStoreRocksDBBackend } from './kvstore-rocksdb-backend'
 
 class KvStore {

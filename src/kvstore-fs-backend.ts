@@ -1,4 +1,4 @@
-import { KvStoreBackend } from './eosdk-wallet-interfaces'
+import { KvStoreBackend } from './eoscore-wallet-interfaces'
 import os from 'os'
 import path from 'path'
 import { constants, promises as fs } from 'fs'
@@ -8,7 +8,7 @@ class KvStoreFileSystemBackend implements KvStoreBackend {
   private extension = '.wallet'
 
   constructor(dbpath?: string) {
-    this.dbpath = dbpath ? dbpath : path.join(os.homedir(), 'eosdk-wallet')
+    this.dbpath = dbpath ? dbpath : path.join(os.homedir(), 'eoscore-wallet')
   }
 
   async set(key: string, value: string): Promise<void> {

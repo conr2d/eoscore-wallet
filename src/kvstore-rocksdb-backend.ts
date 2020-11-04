@@ -1,4 +1,4 @@
-import { KvStoreBackend } from './eosdk-wallet-interfaces'
+import { KvStoreBackend } from './eoscore-wallet-interfaces'
 import os from 'os'
 import path from 'path'
 
@@ -13,7 +13,7 @@ class KvStoreRocksDBBackend implements KvStoreBackend {
   private dbpath: string
 
   constructor(dbpath?: string) {
-    this.dbpath = dbpath ? dbpath : path.join(os.homedir(), 'eosdk-wallet')
+    this.dbpath = dbpath ? dbpath : path.join(os.homedir(), 'eoscore-wallet')
     this.db = level(this.dbpath)
   }
 

@@ -1,12 +1,12 @@
 {
-  "name": "eosdk-wallet",
+  "name": "eoscore-wallet",
   "version": "0.1.0",
   "description": "A simple wallet for eosio blockchain",
   "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "lint": "eslint -c .eslintrc.js --ext .ts src/",
-    "test": "jest src/tests/*eosdk*"
+    "test": "jest src/tests/*eoscore*"
   },
   "keywords": [
     "eosio",
@@ -17,7 +17,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/conr2d/eosdk-wallet.git"
+    "url": "https://github.com/conr2d/eoscore-wallet.git"
   },
   "dependencies": {
     "aes-js": "^3.1.2",

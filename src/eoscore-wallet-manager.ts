@@ -1,9 +1,9 @@
 import crypto from 'crypto'
 import { Numeric } from 'eosjs'
 import { PrivateKey } from 'eosjs/dist/eosjs-key-conversions'
-import { Wallet, defaultEc } from './eosdk-wallet'
+import { Wallet, defaultEc } from './eoscore-wallet'
 import { KvStore } from './kvstore'
-import { WalletNotFoundError, WalletExistsError } from './eosdk-wallet-errors'
+import { WalletNotFoundError, WalletExistsError } from './eoscore-wallet-errors'
 
 const passwordPrefix = 'PW'
 

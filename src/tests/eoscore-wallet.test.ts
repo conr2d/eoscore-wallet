@@ -1,5 +1,5 @@
-import { Wallet } from '../eosdk-wallet'
-import { EncryptedWallet } from '../eosdk-wallet-interfaces'
+import { Wallet } from '../eoscore-wallet'
+import { EncryptedWallet } from '../eoscore-wallet-interfaces'
 
 const encryptedWallet = `
 {
@@ -7,7 +7,7 @@ const encryptedWallet = `
 }`
 const password = 'PW5KZWKXfKJmUGN76MTLbnTfRZDf8s3bLr71jEHHaTMd6bXw2tX31'
 
-describe('eosdk-wallet', () => {
+describe('eoscore-wallet', () => {
   let wallet: Wallet
 
   beforeEach(() => {

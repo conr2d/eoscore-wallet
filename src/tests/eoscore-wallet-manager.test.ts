@@ -1,6 +1,6 @@
-import { WalletManager } from '../eosdk-wallet-manager'
-import { Wallet } from '../eosdk-wallet'
-import { EncryptedWallet } from '../eosdk-wallet-interfaces'
+import { WalletManager } from '../eoscore-wallet-manager'
+import { Wallet } from '../eoscore-wallet'
+import { EncryptedWallet } from '../eoscore-wallet-interfaces'
 
 const encryptedWallet = `
 {
@@ -9,7 +9,7 @@ const encryptedWallet = `
 const password = 'PW5JwFRT1hqfeJpV5d76jz3aGHsWxECbADJdzDX5nZpFm4ChmAA5b'
 const walletName = 'default'
 
-describe('eosdk-wallet-manager', () => {
+describe('eoscore-wallet-manager', () => {
   let walletManager: WalletManager
 
   beforeEach(() => {
