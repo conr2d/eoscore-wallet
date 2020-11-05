@@ -7,6 +7,8 @@ import { KvStore } from './kvstore'
 import { KvStoreFileSystemBackend } from './kvstore-fs-backend'
 import { KvStoreRocksDBBackend } from './kvstore-rocksdb-backend'
 
+import { NativeSignatureProvider } from './native-signature-provider'
+
 export {
   Wallet,
   WalletManager,
@@ -15,4 +17,5 @@ export {
   KvStore,
   KvStoreFileSystemBackend,
   KvStoreRocksDBBackend,
+  NativeSignatureProvider,
 }
