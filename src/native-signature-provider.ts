@@ -26,7 +26,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
   public async sign(args: ApiInterfaces.SignatureProviderArgs): Promise<RpcInterfaces.PushTransactionArgs> {
     const { chainId, serializedTransaction, serializedContextFreeData, requiredKeys } = args
     const digest = digestFromSerializedData(chainId, serializedTransaction, serializedContextFreeData)
-    const signatures = [] as string[];
+    const signatures = [] as string[]
     for (const key of requiredKeys) {
       const publicKey = Numeric.stringToPublicKey(key)
       const privateKey = this.keys.get(Numeric.convertLegacyPublicKey(key)) as Buffer

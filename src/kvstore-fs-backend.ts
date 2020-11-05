@@ -18,7 +18,7 @@ class KvStoreFileSystemBackend implements KvStoreBackend {
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       if (e.code === 'ENOENT') {
         await fs.mkdir(this.dbpath)
-      } else throw e;
+      } else throw e
     }
     await fs.writeFile(path.join(this.dbpath, key + this.extension), value)
   }

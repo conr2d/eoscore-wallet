@@ -90,7 +90,7 @@ class WalletManager {
         if (signature) {
           signatures.push(signature)
           found = true
-          break;
+          break
         }
       }
       if (!found) {

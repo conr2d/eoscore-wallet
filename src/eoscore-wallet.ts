@@ -23,7 +23,7 @@ class Wallet {
     buffer.pushUint8ArrayChecked(checksum, 64)
     buffer.pushVaruint32(0)
     const size = buffer.length
-    const cipherKeys = aes.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16);
+    const cipherKeys = aes.encrypt(checksum, buffer.asUint8Array()).slice(0, size+16)
     const wallet = new Wallet(name, {
 /* eslint-disable @typescript-eslint/naming-convention */
       cipher_keys: cipherKeys.toString('hex')
@@ -41,7 +41,7 @@ class Wallet {
   public unlock(password: string): void {
     try {
       this.checksum = Buffer.from(hash.sha512().update(password).digest())
-      const decrypted = aes.decrypt(this.checksum, Buffer.from(this.encrypted.cipher_keys, 'hex'));
+      const decrypted = aes.decrypt(this.checksum, Buffer.from(this.encrypted.cipher_keys, 'hex'))
       const buffer = new Serialize.SerialBuffer({ array: decrypted })
       const wallet = types.get('wallet')
       const deser = wallet?.deserialize(buffer) as DecryptedWallet
@@ -96,7 +96,7 @@ class Wallet {
       buffer.pushPrivateKey(Numeric.privateKeyToString({ type: publicKey.type, data: priv }))
     })
     const size = buffer.length
-    const cipherKeys = aes.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16);
+    const cipherKeys = aes.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16)
     this.encrypted = {
       cipher_keys: cipherKeys.toString('hex')
     }
