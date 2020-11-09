@@ -48,7 +48,7 @@ class Wallet {
       if (this.checksum.toString('hex').toLowerCase() !== deser.checksum.toLowerCase()) {
         throw new WalletInvalidPasswordError()
       }
-      const keys = []
+      const keys = [] as string[]
       for (const keyPair of deser.keys) {
         const priv = {
           type: Numeric.stringToPublicKey(keyPair.key).type,
