@@ -3,6 +3,11 @@ import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
 import { UnsupportedKeyTypeError }  from './eoscore-wallet-errors'
 
+function isCanonicalSignature(sigData: Uint8Array): boolean {
+  return !(sigData[0] & 0x80) && !(sigData[0] === 0 && !(sigData[1] & 0x80))
+  && !(sigData[32] & 0x80) && !(sigData[32] === 0 && !(sigData[33] & 0x80))
+}
+
 class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
   public keys = new Map<string, Buffer>()
   public availableKeys = [] as string[]
@@ -49,7 +54,13 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       return undefined
     }
     const publicKey = Numeric.stringToPublicKey(key)
-    const rawSignature = secp256k1.ecdsaSign(digest, privateKey)
+    const data = Buffer.alloc(32)
+    let rawSignature
+    do {
+      rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data })
+      rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
+      data.writeUInt32LE(data.readUInt32LE() + 1)
+    } while (!isCanonicalSignature(rawSignature.signature))
     const signature = {
       type: publicKey.type,
       data: Buffer.concat([
