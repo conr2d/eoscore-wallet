@@ -35,7 +35,13 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     for (const key of requiredKeys) {
       const publicKey = Numeric.stringToPublicKey(key)
       const privateKey = this.keys.get(Numeric.convertLegacyPublicKey(key)) as Buffer
-      const rawSignature = secp256k1.ecdsaSign(digest, privateKey)
+      const data = Buffer.alloc(32)
+      let rawSignature
+      do {
+        rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data })
+        rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
+        data.writeUInt32LE(data.readUInt32LE() + 1)
+      } while (!isCanonicalSignature(rawSignature.signature))
       const signature = {
         type: publicKey.type,
         data: Buffer.concat([
