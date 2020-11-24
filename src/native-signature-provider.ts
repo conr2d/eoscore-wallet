@@ -39,9 +39,9 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       let rawSignature
       do {
         rawSignature = secp256k1.signRecoverable(digest, privateKey, data)
-        rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
+        rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
         data.writeUInt32LE(data.readUInt32LE() + 1)
-      } while (!isCanonicalSignature(rawSignature.signature))
+      } while (!isCanonicalSignature(rawSignature[0]))
       const signature = {
         type: publicKey.type,
         data: Buffer.concat([
@@ -64,9 +64,9 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     let rawSignature
     do {
       rawSignature = secp256k1.signRecoverable(digest, privateKey, data)
-      rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
+      rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
       data.writeUInt32LE(data.readUInt32LE() + 1)
-    } while (!isCanonicalSignature(rawSignature.signature))
+    } while (!isCanonicalSignature(rawSignature[0]))
     const signature = {
       type: publicKey.type,
       data: Buffer.concat([
