@@ -1,7 +1,7 @@
-import secp256k1 from 'secp256k1'
 import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
 import { UnsupportedKeyTypeError }  from './eoscore-wallet-errors'
+import { secp256k1 } from './crypto'
 
 function isCanonicalSignature(sigData: Uint8Array): boolean {
   return !(sigData[0] & 0x80) && !(sigData[0] === 0 && !(sigData[1] & 0x80))
@@ -18,7 +18,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       if (priv.type !== Numeric.KeyType.k1) {
         throw new UnsupportedKeyTypeError()
       }
-      const pubStr = Numeric.publicKeyToString({ type: priv.type, data: secp256k1.publicKeyCreate(priv.data) })
+      const pubStr = Numeric.publicKeyToString({ type: priv.type, data: secp256k1.publicKeyCreate(Buffer.from(priv.data)) })
       this.keys.set(pubStr, Buffer.from(priv.data))
       this.availableKeys.push(pubStr)
     }
@@ -38,15 +38,15 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       const data = Buffer.alloc(32)
       let rawSignature
       do {
-        rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data })
+        rawSignature = secp256k1.signRecoverable(digest, privateKey, data)
         rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
         data.writeUInt32LE(data.readUInt32LE() + 1)
       } while (!isCanonicalSignature(rawSignature.signature))
       const signature = {
         type: publicKey.type,
         data: Buffer.concat([
-          Buffer.from([rawSignature.recid + 27]),
-          Buffer.from(rawSignature.signature)
+          Buffer.from([rawSignature[1] + 27]),
+          Buffer.from(rawSignature[0])
         ])
       }
       signatures.push(Numeric.signatureToString(signature))
@@ -63,15 +63,15 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     const data = Buffer.alloc(32)
     let rawSignature
     do {
-      rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data })
+      rawSignature = secp256k1.signRecoverable(digest, privateKey, data)
       rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
       data.writeUInt32LE(data.readUInt32LE() + 1)
     } while (!isCanonicalSignature(rawSignature.signature))
     const signature = {
       type: publicKey.type,
       data: Buffer.concat([
-        Buffer.from([rawSignature.recid + 27]),
-        Buffer.from(rawSignature.signature)
+        Buffer.from([rawSignature[1] + 27]),
+        Buffer.from(rawSignature[0])
       ])
     }
     return Numeric.signatureToString(signature)

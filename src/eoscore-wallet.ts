@@ -2,10 +2,9 @@ import { Numeric, Serialize } from 'eosjs'
 import { NativeSignatureProvider } from './native-signature-provider'
 import { EncryptedWallet, DecryptedWallet } from './eoscore-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eoscore-wallet-errors'
-import { aes, hash } from './crypto'
+import { aes, hash, secp256k1 } from './crypto'
 import crypto from 'crypto'
 import { KvStore } from './kvstore'
-import secp256k1 from 'secp256k1'
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -18,7 +17,7 @@ class Wallet {
   private checksum?: Buffer
 
   public static create(name: string, password: string, kvstore: KvStore = new KvStore()): Wallet {
-    const checksum = Buffer.from(hash.sha512().update(password).digest())
+    const checksum = Buffer.from(hash.sha512().update(Buffer.from(password)).final())
     const buffer = new Serialize.SerialBuffer()
     buffer.pushUint8ArrayChecked(checksum, 64)
     buffer.pushVaruint32(0)
@@ -40,7 +39,7 @@ class Wallet {
 
   public unlock(password: string): void {
     try {
-      this.checksum = Buffer.from(hash.sha512().update(password).digest())
+      this.checksum = Buffer.from(hash.sha512().update(Buffer.from(password)).final())
       const decrypted = aes.decrypt(this.checksum, Buffer.from(this.encrypted.cipher_keys, 'hex'))
       const buffer = new Serialize.SerialBuffer({ array: decrypted })
       const wallet = types.get('wallet')
@@ -108,7 +107,7 @@ class Wallet {
       throw new WalletLockedError()
     }
     const priv = Numeric.stringToPrivateKey(privateKey)
-    const pubStr = Numeric.publicKeyToString({ type: priv.type, data: Buffer.from(secp256k1.publicKeyCreate(priv.data)) })
+    const pubStr = Numeric.publicKeyToString({ type: priv.type, data: Buffer.from(secp256k1.publicKeyCreate(Buffer.from(priv.data))) })
     if (!this.sig.keys.has(pubStr)) {
       this.sig.keys.set(pubStr, Buffer.from(priv.data))
       this.sig.availableKeys.push(pubStr)
