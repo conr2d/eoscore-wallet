@@ -1,5 +1,7 @@
 import { Wallet } from '../eoscore-wallet'
 import { EncryptedWallet } from '../eoscore-wallet-interfaces'
+import { Numeric } from 'eosjs'
+import secp256k1 from 'secp256k1'
 
 const encryptedWallet = `
 {
@@ -37,5 +39,19 @@ describe('eoscore-wallet', () => {
     const serializedCipherKeys = (JSON.parse(serializedWallet) as EncryptedWallet).cipher_keys
 
     expect(cipherKeys === serializedCipherKeys).toEqual(true)
+  })
+
+  it('trySignDigest generates a valid signature', async () => {
+    wallet.unlock(password)
+    const digest = Buffer.alloc(32)
+    const publicKey = 'PUB_K1_4urxYs1SjvNyqN17ZNyg1WhWNtwW3SQz9ArXn4oGbQ6mwC6qBT'
+    const signatureStr = (await wallet.trySignDigest(digest, publicKey)) as string
+    const signature = Numeric.stringToSignature(signatureStr)
+    const recoveredKey = {
+      type: Numeric.KeyType.k1,
+      data: secp256k1.ecdsaRecover(signature.data.slice(1), signature.data[0] - 27, digest),
+    }
+
+    expect(Numeric.publicKeyToString(recoveredKey)).toEqual(publicKey)
   })
 })
