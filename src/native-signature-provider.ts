@@ -1,7 +1,7 @@
-import secp256k1 from 'secp256k1'
 import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
 import { UnsupportedKeyTypeError }  from './eoscore-wallet-errors'
+import { secp256k1 } from './crypto'
 
 function isCanonicalSignature(sigData: Uint8Array): boolean {
   return !(sigData[0] & 0x80) && !(sigData[0] === 0 && !(sigData[1] & 0x80))
@@ -18,7 +18,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       if (priv.type !== Numeric.KeyType.k1) {
         throw new UnsupportedKeyTypeError()
       }
-      const pubStr = Numeric.publicKeyToString({ type: priv.type, data: secp256k1.publicKeyCreate(priv.data) })
+      const pubStr = Numeric.publicKeyToString({ type: priv.type, data: secp256k1.publicKeyCreate(Buffer.from(priv.data)) })
       this.keys.set(pubStr, Buffer.from(priv.data))
       this.availableKeys.push(pubStr)
     }
@@ -36,18 +36,18 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       const publicKey = Numeric.stringToPublicKey(key)
       const privateKey = this.keys.get(Numeric.convertLegacyPublicKey(key)) as Buffer
       let rawSignature = {
-        signature: new Uint8Array(64),
-        recid: 0,
+        0: Buffer.alloc(64),
+        1: 0
       }
       do {
-        rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data: rawSignature.signature })
-        rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
-      } while (!isCanonicalSignature(rawSignature.signature))
+        rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
+        rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
+      } while (!isCanonicalSignature(rawSignature[0]))
       const signature = {
         type: publicKey.type,
         data: Buffer.concat([
-          Buffer.from([rawSignature.recid + 27]),
-          Buffer.from(rawSignature.signature)
+          Buffer.from([rawSignature[1] + 27]),
+          Buffer.from(rawSignature[0])
         ])
       }
       signatures.push(Numeric.signatureToString(signature))
@@ -62,18 +62,18 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     }
     const publicKey = Numeric.stringToPublicKey(key)
     let rawSignature = {
-      signature: new Uint8Array(64),
-      recid: 0,
+      0: Buffer.alloc(64),
+      1: 0
     }
     do {
-      rawSignature = secp256k1.ecdsaSign(digest, privateKey, { data: rawSignature.signature })
-      rawSignature.signature = secp256k1.signatureNormalize(rawSignature.signature)
-    } while (!isCanonicalSignature(rawSignature.signature))
+      rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
+      rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
+    } while (!isCanonicalSignature(rawSignature[0]))
     const signature = {
       type: publicKey.type,
       data: Buffer.concat([
-        Buffer.from([rawSignature.recid + 27]),
-        Buffer.from(rawSignature.signature)
+        Buffer.from([rawSignature[1] + 27]),
+        Buffer.from(rawSignature[0])
       ])
     }
     return Numeric.signatureToString(signature)

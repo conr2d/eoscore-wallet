@@ -1,28 +1,40 @@
-import crypto from 'crypto'
+const _aes = require('@conr2d/bcrypto/lib/aes')
+const random = require('@conr2d/bcrypto/lib/random')
+const sha256 = require('@conr2d/bcrypto/lib/sha256')
+const sha512 = require('@conr2d/bcrypto/lib/sha512')
+const secp256k1 = require('@conr2d/bcrypto/lib/secp256k1')
 
 class aes {
   public static encrypt(key: Buffer | Uint8Array, plainText: Buffer | Uint8Array): Buffer {
-    const cipher = crypto.createCipheriv('aes-256-cbc', key.slice(0, 32), key.slice(32, 48))
-    return Buffer.concat([cipher.update(plainText), cipher.final()])
+    return _aes.encipher(Buffer.from(plainText), Buffer.from(key.slice(0, 32)), Buffer.from(key.slice(32, 48)))
   }
 
   public static decrypt(key: Buffer | Uint8Array, cipherText: Buffer | Uint8Array): Buffer {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key.slice(0, 32), key.slice(32, 48))
-    return Buffer.concat([decipher.update(cipherText), decipher.final()])
+    return _aes.decipher(Buffer.from(cipherText), Buffer.from(key.slice(0, 32)), Buffer.from(key.slice(32, 48)))
   }
 }
 
 class hash {
   public static sha256() {
-    return crypto.createHash('sha256')
+    const hasher = sha256.hash()
+    hasher.init()
+    return hasher
   }
 
   public static sha512() {
-    return crypto.createHash('sha512')
+    const hasher = sha512.hash()
+    hasher.init()
+    return hasher
   }
+}
+
+function randomBytes(size: number) {
+  return random.randomBytes(size)
 }
 
 export {
   aes,
-  hash
+  hash,
+  randomBytes,
+  secp256k1,
 }
