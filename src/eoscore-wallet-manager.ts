@@ -7,7 +7,7 @@ import { digestFromSerializedData } from './eoscore-wallet-utils'
 
 const passwordPrefix = 'PW'
 
-class WalletManager {
+class WalletManager implements ApiInterfaces.SignatureProvider {
   private wallets: Map<string, Wallet> = new Map<string, Wallet>()
 
   public static generatePassword(): string {
