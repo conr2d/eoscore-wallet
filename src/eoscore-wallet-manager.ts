@@ -4,6 +4,7 @@ import { Wallet } from './eoscore-wallet'
 import { KvStore } from './kvstore'
 import { WalletNotFoundError, WalletExistsError, KeyNotFoundError } from './eoscore-wallet-errors'
 import { digestFromSerializedData } from './eoscore-wallet-utils'
+import { WalletProxy } from './eoscore-wallet-proxy'
 
 const passwordPrefix = 'PW'
 
@@ -103,6 +104,18 @@ class WalletManager implements ApiInterfaces.SignatureProvider {
   // For test, this will be removed in the future version
   public getWallet(walletName: string): Wallet | undefined {
     return this.wallets.get(walletName)
+  }
+
+  public getProxy(walletNames: string[]): WalletProxy {
+    let wallets = [] as Wallet[]
+    for (const walletName of walletNames) {
+      const wallet = this.wallets.get(walletName)
+      if (!wallet) {
+        throw new WalletNotFoundError()
+      }
+      wallets.push(wallet)
+    }
+    return new WalletProxy(wallets)
   }
 }
 
