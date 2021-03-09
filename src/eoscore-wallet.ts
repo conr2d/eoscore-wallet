@@ -31,7 +31,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     return wallet
   }
 
-  constructor(private name: string, private encrypted: EncryptedWallet, private kvstore: KvStore = new KvStore()) {}
+  constructor(public readonly name: string, private encrypted: EncryptedWallet, private kvstore: KvStore = new KvStore()) {}
 
   public isLocked(): boolean {
     return !this.sig
