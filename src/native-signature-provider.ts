@@ -28,6 +28,24 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     return this.availableKeys
   }
 
+  private _sign(digest: Buffer, publicKey: Numeric.Key, privateKey: Buffer) {
+    let rawSignature = {
+      0: Buffer.alloc(64),
+      1: 0
+    }
+    do {
+      rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
+      rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
+    } while (!isCanonicalSignature(rawSignature[0]))
+    return {
+      type: publicKey.type,
+      data: Buffer.concat([
+        Buffer.from([rawSignature[1] + 27]),
+        Buffer.from(rawSignature[0])
+      ])
+    }
+  }
+
   public async sign(args: ApiInterfaces.SignatureProviderArgs): Promise<RpcInterfaces.PushTransactionArgs> {
     const { chainId, serializedTransaction, serializedContextFreeData, requiredKeys } = args
     const digest = digestFromSerializedData(chainId, serializedTransaction, serializedContextFreeData)
@@ -35,21 +53,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     for (const key of requiredKeys) {
       const publicKey = Numeric.stringToPublicKey(key)
       const privateKey = this.keys.get(Numeric.convertLegacyPublicKey(key)) as Buffer
-      let rawSignature = {
-        0: Buffer.alloc(64),
-        1: 0
-      }
-      do {
-        rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
-        rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
-      } while (!isCanonicalSignature(rawSignature[0]))
-      const signature = {
-        type: publicKey.type,
-        data: Buffer.concat([
-          Buffer.from([rawSignature[1] + 27]),
-          Buffer.from(rawSignature[0])
-        ])
-      }
+      const signature = this._sign(digest, publicKey, privateKey)
       signatures.push(Numeric.signatureToString(signature))
     }
     return { signatures, serializedTransaction, serializedContextFreeData }
@@ -61,21 +65,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
       return undefined
     }
     const publicKey = Numeric.stringToPublicKey(key)
-    let rawSignature = {
-      0: Buffer.alloc(64),
-      1: 0
-    }
-    do {
-      rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
-      rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
-    } while (!isCanonicalSignature(rawSignature[0]))
-    const signature = {
-      type: publicKey.type,
-      data: Buffer.concat([
-        Buffer.from([rawSignature[1] + 27]),
-        Buffer.from(rawSignature[0])
-      ])
-    }
+    const signature = this._sign(digest, publicKey, privateKey)
     return Numeric.signatureToString(signature)
   }
 }
