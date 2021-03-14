@@ -49,11 +49,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       }
       const keys = [] as string[]
       for (const keyPair of deser.keys) {
-        const priv = {
-          type: Numeric.stringToPublicKey(keyPair.key).type,
-          data: Buffer.from(keyPair.value.data, 'hex')
-        }
-        keys.push(Numeric.privateKeyToString(priv))
+        keys.push(keyPair.value)
       }
       this.sig = new NativeSignatureProvider(keys)
     } catch (error) {

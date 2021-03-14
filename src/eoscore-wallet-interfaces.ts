@@ -7,7 +7,7 @@ export interface EncryptedWallet {
 
 interface KeyPair {
   key: string
-  value: Key
+  value: string
 }
 
 interface Key {

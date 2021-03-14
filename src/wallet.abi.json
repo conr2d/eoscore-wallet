@@ -4,20 +4,6 @@
     "types": [],
     "structs": [
         {
-            "name": "private_key",
-            "base": "",
-            "fields": [
-                {
-                    "name": "type",
-                    "type": "varuint32"
-                },
-                {
-                    "name": "data",
-                    "type": "checksum256"
-                }
-            ]
-        },
-        {
             "name": "pair_public_key_private_key",
             "base": "",
             "fields": [
