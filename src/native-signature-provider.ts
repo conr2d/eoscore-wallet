@@ -29,20 +29,15 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
   }
 
   private _sign(digest: Buffer, publicKey: Numeric.Key, privateKey: Buffer) {
-    let rawSignature = {
-      0: Buffer.alloc(64),
-      1: 0
-    }
+    let data = Buffer.alloc(32)
+    let signature
     do {
-      rawSignature = secp256k1.signRecoverable(digest, privateKey, rawSignature[0].slice(0, 32))
-      rawSignature[0] = secp256k1.signatureNormalize(rawSignature[0])
-    } while (!isCanonicalSignature(rawSignature[0]))
+      signature = secp256k1.signRecoverable(digest, privateKey, data)
+      data.writeUInt32LE(data.readUInt32LE() + 1)
+    } while (!isCanonicalSignature(signature[0]))
     return {
       type: publicKey.type,
-      data: Buffer.concat([
-        Buffer.from([rawSignature[1] + 27]),
-        Buffer.from(rawSignature[0])
-      ])
+      data: Buffer.concat([Buffer.from([signature[1] + 27]), Buffer.from(signature[0])])
     }
   }
 
