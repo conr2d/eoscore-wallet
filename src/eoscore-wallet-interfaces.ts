@@ -1,5 +1,3 @@
-import { Numeric } from 'eosjs'
-
 /* eslint-disable @typescript-eslint/naming-convention */
 export interface EncryptedWallet {
   cipher_keys: string
@@ -8,11 +6,6 @@ export interface EncryptedWallet {
 interface KeyPair {
   key: string
   value: string
-}
-
-interface Key {
-  type: Numeric.KeyType
-  data: string
 }
 
 export interface DecryptedWallet {
