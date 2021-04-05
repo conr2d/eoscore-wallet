@@ -49,7 +49,7 @@ describe('eoscore-wallet', () => {
     const signature = Numeric.stringToSignature(signatureStr)
     const recoveredKey = {
       type: Numeric.KeyType.k1,
-      data: secp256k1.recover(digest, Buffer.from(signature.data.slice(1)), signature.data[0] - 27),
+      data: secp256k1.recover(digest, Buffer.from(signature.data.slice(1)), (signature.data[0] - 27) & 3),
     }
 
     expect(Numeric.publicKeyToString(recoveredKey)).toEqual(publicKey)

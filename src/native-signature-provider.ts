@@ -37,7 +37,7 @@ class NativeSignatureProvider implements ApiInterfaces.SignatureProvider {
     } while (!isCanonicalSignature(signature[0]))
     return {
       type: publicKey.type,
-      data: Buffer.concat([Buffer.from([signature[1] + 27]), Buffer.from(signature[0])])
+      data: Buffer.concat([Buffer.from([signature[1] + 27 + 4]), Buffer.from(signature[0])])
     }
   }
 
