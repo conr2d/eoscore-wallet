@@ -1,4 +1,4 @@
-import { ApiInterfaces, RpcInterfaces } from 'eosjs'
+import { ApiInterfaces, RpcInterfaces } from '@conr2d/eosjs'
 import { Wallet } from './eoscore-wallet'
 import { KeyNotFoundError } from './eoscore-wallet-errors'
 import { digestFromSerializedData } from './eoscore-wallet-utils'

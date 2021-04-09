@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { Numeric, ApiInterfaces, RpcInterfaces } from 'eosjs'
+import { Numeric, ApiInterfaces, RpcInterfaces } from '@conr2d/eosjs'
 import { Wallet } from './eoscore-wallet'
 import { KvStore } from './kvstore'
 import { WalletNotFoundError, WalletExistsError, KeyNotFoundError } from './eoscore-wallet-errors'

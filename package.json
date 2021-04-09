@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@conr2d/bcrypto": "^5.3.1",
-    "eosjs": "^21.0.3",
+    "@conr2d/eosjs": "^21.0.7",
     "level-rocksdb": "^4.0.0"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
-import { Numeric, Serialize, ApiInterfaces, RpcInterfaces } from 'eosjs'
-import { NativeSignatureProvider } from './native-signature-provider'
+import { Numeric, Serialize, ApiInterfaces, RpcInterfaces } from '@conr2d/eosjs'
+import { JsSignatureProvider } from './eoscore-jssig'
 import { EncryptedWallet, DecryptedWallet } from './eoscore-wallet-interfaces'
 import { WalletInvalidDataError, WalletInvalidPasswordError, WalletLockedError } from './eoscore-wallet-errors'
 import { aes, hash, secp256k1 } from './crypto'
@@ -13,7 +13,7 @@ const walletAbi = require('../src/wallet.abi.json')
 const types = Serialize.getTypesFromAbi(Serialize.createInitialTypes(), walletAbi)
 
 class Wallet implements ApiInterfaces.SignatureProvider {
-  private sig?: NativeSignatureProvider
+  private sig?: JsSignatureProvider
   private checksum?: Buffer
 
   public static create(name: string, password: string, kvstore: KvStore = new KvStore()): Wallet {
@@ -51,7 +51,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
       for (const keyPair of deser.keys) {
         keys.push(keyPair.value)
       }
-      this.sig = new NativeSignatureProvider(keys)
+      this.sig = new JsSignatureProvider(keys)
     } catch (error) {
       this.checksum = undefined
       throw new WalletInvalidDataError()
@@ -92,10 +92,9 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     const buffer = new Serialize.SerialBuffer()
     buffer.pushUint8ArrayChecked(this.checksum as Buffer, 64)
     buffer.pushVaruint32(this.sig.keys.size)
-    this.sig.keys.forEach((priv: Buffer, pub: string) => {
+    this.sig.keys.forEach((priv: Numeric.Key, pub: string) => {
       buffer.pushPublicKey(pub)
-      const publicKey = Numeric.stringToPublicKey(pub)
-      buffer.pushPrivateKey(Numeric.privateKeyToString({ type: publicKey.type, data: priv }))
+      buffer.pushPrivateKey(Numeric.privateKeyToString(priv))
     })
     const size = buffer.length
     const cipherKeys = aes.encrypt(this.checksum as Buffer, buffer.asUint8Array()).slice(0, size+16)
@@ -112,7 +111,7 @@ class Wallet implements ApiInterfaces.SignatureProvider {
     const priv = Numeric.stringToPrivateKey(privateKey)
     const pubStr = Numeric.publicKeyToString({ type: priv.type, data: Buffer.from(secp256k1.publicKeyCreate(Buffer.from(priv.data))) })
     if (!this.sig.keys.has(pubStr)) {
-      this.sig.keys.set(pubStr, Buffer.from(priv.data))
+      this.sig.keys.set(pubStr, priv)
       this.sig.availableKeys.push(pubStr)
       this.serialize()
     }

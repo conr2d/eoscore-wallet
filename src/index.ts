@@ -7,7 +7,7 @@ import { KvStore } from './kvstore'
 import { KvStoreFileSystemBackend } from './kvstore-fs-backend'
 import { KvStoreRocksDBBackend } from './kvstore-rocksdb-backend'
 
-import { NativeSignatureProvider } from './native-signature-provider'
+import { JsSignatureProvider } from './eoscore-jssig'
 
 export {
   Wallet,
@@ -17,5 +17,5 @@ export {
   KvStore,
   KvStoreFileSystemBackend,
   KvStoreRocksDBBackend,
-  NativeSignatureProvider,
+  JsSignatureProvider,
 }

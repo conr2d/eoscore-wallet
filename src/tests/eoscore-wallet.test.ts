@@ -1,6 +1,6 @@
 import { Wallet } from '../eoscore-wallet'
 import { EncryptedWallet } from '../eoscore-wallet-interfaces'
-import { Numeric } from 'eosjs'
+import { Numeric } from '@conr2d/eosjs'
 import { secp256k1 } from '../crypto'
 
 const encryptedWallet = `
